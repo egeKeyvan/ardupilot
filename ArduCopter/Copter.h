@@ -72,6 +72,8 @@
 #include "defines.h"
 #include "config.h"
 
+#define MODE_MISSION_ENABLED ENABLED
+
 #if FRAME_CONFIG == HELI_FRAME
     #define AC_AttitudeControl_t AC_AttitudeControl_Heli
 #else
@@ -230,6 +232,7 @@ public:
     friend class ModeThrow;
     friend class ModeZigZag;
     friend class ModeAutorotate;
+    friend class ModeMission;
 
     Copter(void);
 
@@ -364,7 +367,7 @@ private:
             uint8_t motor_interlock_switch  : 1; // 22      // true if pilot is requesting motor interlock enable
             uint8_t in_arming_delay         : 1; // 23      // true while we are armed but waiting to spin motors
             uint8_t initialised_params      : 1; // 24      // true when the all parameters have been initialised. we cannot send parameters to the GCS until this is done
-            uint8_t compass_init_location   : 1; // 25      // true when the compass's initial location has been set
+            uint8_t unused3   : 1; // 25      // was compass_init_location; true when the compass's initial location has been set
             uint8_t unused2                 : 1; // 26      // aux switch rc_override is allowed
             uint8_t armed_with_switch       : 1; // 27      // we armed using a arming switch
         };
@@ -957,6 +960,10 @@ private:
 #endif
 #if MODE_AUTOROTATE_ENABLED == ENABLED
     ModeAutorotate mode_autorotate;
+#endif
+
+#if MODE_MISSION_ENABLED == ENABLED
+    ModeMission mode_mission;
 #endif
 
     // mode.cpp
