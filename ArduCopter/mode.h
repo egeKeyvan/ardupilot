@@ -36,6 +36,7 @@ public:
         ZIGZAG    =    24,  // ZIGZAG mode is able to fly in a zigzag manner with predefined point A and point B
         SYSTEMID  =    25,  // System ID mode produces automated system identification signals in the controllers
         AUTOROTATE =   26,  // Autonomous autorotation
+        MISSION    =   27,  // ORT Mission Mode
     };
 
     // constructor
@@ -252,6 +253,62 @@ public:
 };
 
 
+#ifdef MODE_MISSION_ENABLED
+class ModeMission : public Mode{
+public:
+    void run() override;
+    bool init(bool ignore_checks) override;
+
+    bool first_segment_run();
+    bool second_segment_run();
+    bool last_segment_run();
+    bool return_run();
+
+    bool requires_GPS() const override { return true; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(bool from_gcs) const override { return true; };
+    bool is_autopilot() const override { return true; }
+
+protected:
+    const char *name() const override { return "MISSION"; }
+    const char *name4() const override { return "MISS"; }
+
+
+private:
+    Location current_location;
+    Vector3f travel_setpoint;
+    Location start_yaw_location;
+    Vector3f stopping_point;
+    Quaternion start_yaw_quat;
+
+    Vector3f next_circle_point;
+    Vector3f current_circle_point;
+    float current_radians;
+
+    char mission_leg;
+    char next_leg;
+
+    bool has_reached_circle_start;
+    bool has_started_leg;
+    bool leg_has_finished;
+    bool output_rate;
+
+    float yaw_variable;
+
+    void first_segment_init();
+    void second_segment_init();
+    void last_segment_init();
+    void return_init();
+
+    void first_segment_finish();
+    void second_segment_finish();
+    void last_segment_finish();
+    void return_finish();
+
+};
+#endif
+
+
 #if MODE_ACRO_ENABLED == ENABLED
 class ModeAcro : public Mode {
 
@@ -351,7 +408,6 @@ public:
     bool loiter_start();
     void rtl_start();
     void takeoff_start(const Location& dest_loc);
-    void wp_start(const Vector3f& destination, bool terrain_alt);
     void wp_start(const Location& dest_loc);
     void land_start();
     void land_start(const Vector3f& destination);
@@ -785,7 +841,7 @@ public:
     bool requires_terrain_failsafe() const override { return true; }
 
     void set_angle(const Quaternion &q, float climb_rate_cms, bool use_yaw_rate, float yaw_rate_rads);
-    bool set_destination(const Vector3f& destination, bool use_yaw = false, float yaw_cd = 0.0, bool use_yaw_rate = false, float yaw_rate_cds = 0.0, bool yaw_relative = false);
+    bool set_destination(const Vector3f& destination, bool use_yaw = false, float yaw_cd = 0.0, bool use_yaw_rate = false, float yaw_rate_cds = 0.0, bool yaw_relative = false, bool terrain_alt = false);
     bool set_destination(const Location& dest_loc, bool use_yaw = false, float yaw_cd = 0.0, bool use_yaw_rate = false, float yaw_rate_cds = 0.0, bool yaw_relative = false);
     bool get_wp(Location &loc) override;
     void set_velocity(const Vector3f& velocity, bool use_yaw = false, float yaw_cd = 0.0, bool use_yaw_rate = false, float yaw_rate_cds = 0.0, bool yaw_relative = false, bool log_request = true);
