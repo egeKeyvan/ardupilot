@@ -16,17 +16,13 @@ bool ModeMission::init(bool ignore_checks){
         return true;
     }
 
-    if(!(copter.current_loc.relative_alt == 1 && copter.current_loc.alt > 190)){
-        return false;
-    }
-
 
     
     wp_nav->wp_and_spline_init();
     wp_nav->set_speed_xy(MISSION_SPEED);
-    wp_nav->set_speed_up(100.0f);
+    wp_nav->set_speed_up(MISSION_SPEED);
 
-    pos_control->init_vel_controller_xyz();
+    // pos_control->init_vel_controller_xyz();
     pos_control->init_xy_controller();
     
     attitude_control->reset_rate_controller_I_terms();
@@ -39,12 +35,14 @@ bool ModeMission::init(bool ignore_checks){
     has_started_leg = false;
 
     start_yaw_location = copter.current_loc;
+    current_location = copter.current_loc;
     leg_has_finished = false;
     yaw_variable = YAW_RATE;
 
     travel_setpoint = Vector3f(500.0f, 0.0f, 200.0f);
     next_leg = 2;
 
+    current_location.change_alt_frame(Location::AltFrame::ABOVE_TERRAIN);
     has_reached_circle_start = false;
     current_radians = 0.0;
 
@@ -80,7 +78,6 @@ void ModeMission::run(){
         break;
 
         case 5:
-            gcs().send_text(MAV_SEVERITY_ERROR, "YAPTIK SIZI OÇLAR");
             //copter.motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
         break;
 
@@ -90,7 +87,7 @@ void ModeMission::run(){
     
     //float dt = pos_control->time_since_last_xy_update();
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
-    wp_nav->update_wpnav();
+    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
     pos_control->update_z_controller();
 
     if(output_rate){
@@ -99,7 +96,7 @@ void ModeMission::run(){
         attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), auto_yaw.yaw(), true);
     }
 
-    attitude_control->rate_controller_run();
+    //attitude_control->rate_controller_run();
 }
 
 
@@ -206,6 +203,7 @@ void ModeMission::first_segment_init(){
 
     
     wp_nav->set_wp_destination(travel_setpoint, true);
+    pos_control->init_xy_controller();
 }
 
 
@@ -213,6 +211,7 @@ void ModeMission::second_segment_init(){
     gcs().send_text(MAV_SEVERITY_INFO, "Second Segment has started");
 
     wp_nav->set_wp_destination(Vector3f(0.0f, 0.0f, 700.0f), true);
+    pos_control->init_xy_controller();
 }
 
 
@@ -220,10 +219,11 @@ void ModeMission::last_segment_init(){
     output_rate = false;
     yaw_variable = YAW_RATE / 2.0f;
     
-    wp_nav->set_wp_destination(Vector3f(0.0f, 0.0f, 200.0f));
+    wp_nav->set_wp_destination(Vector3f(0.0f, 0.0f, 200.0f), true);
     gcs().send_text(MAV_SEVERITY_INFO, "Third Segment has started");
 
     current_circle_point = Vector3f(200.0f, 0.0f, 500.0f);
+    pos_control->init_xy_controller();
 }
 
 void ModeMission::return_init(){
