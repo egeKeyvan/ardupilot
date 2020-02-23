@@ -72,6 +72,11 @@
 #include "defines.h"
 #include "config.h"
 
+// #define USERHOOK_FASTLOOP
+// #define USERHOOK_INIT userhook_init();
+// #define USERHOOK_SUPERSLOWLOOP
+// #define USERHOOK_VARIABLES
+
 #define MODE_MISSION_ENABLED ENABLED
 
 #if FRAME_CONFIG == HELI_FRAME
