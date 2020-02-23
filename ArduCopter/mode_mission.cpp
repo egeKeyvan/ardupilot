@@ -23,7 +23,7 @@ bool ModeMission::init(bool ignore_checks){
     wp_nav->set_speed_up(MISSION_SPEED);
 
     // pos_control->init_vel_controller_xyz();
-    // pos_control->init_xy_controller();
+    //pos_control->init_xy_controller();
     
     attitude_control->reset_rate_controller_I_terms();
     //attitude_control->relax_attitude_controllers();
